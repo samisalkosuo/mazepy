@@ -1,3 +1,8 @@
 Version 0.1 (13.06.2016)
 
 - Initial version.
+- Includes Grid, Cell and Distances classes.
+- Implements algorithms: Aldous Broder, Binary Tree,
+  Hunt And Kill, Recursive Backtracker, Sidewinder
+  and Wilson.
+  

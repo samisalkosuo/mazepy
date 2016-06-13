@@ -48,10 +48,10 @@ import random
 MAZE_ALGORITHMS=dict()
 MAZE_ALGORITHMS["AB"]="Aldous Broder"
 MAZE_ALGORITHMS["BT"]="Binary Tree"
+MAZE_ALGORITHMS["HK"]="Hunt And Kill"
 MAZE_ALGORITHMS["RB"]="Recursive Backtracker"
 MAZE_ALGORITHMS["S"]="Sidewinder"
 MAZE_ALGORITHMS["W"]="Wilson"
-MAZE_ALGORITHMS["HK"]="Hunt And Kill"
 
 MAZE_ALGORITHMS_DESC=[]
 for a in MAZE_ALGORITHMS.keys():

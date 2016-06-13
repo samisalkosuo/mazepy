@@ -1,0 +1,3 @@
+[console_scripts]
+mazepy = mazepy.mazepy:main
+

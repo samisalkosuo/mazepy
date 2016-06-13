@@ -1,0 +1,13 @@
+LICENSE
+MANIFEST.in
+README.rst
+setup.cfg
+setup.py
+mazepy/__init__.py
+mazepy/__main__.py
+mazepy/mazepy.py
+mazepy.egg-info/PKG-INFO
+mazepy.egg-info/SOURCES.txt
+mazepy.egg-info/dependency_links.txt
+mazepy.egg-info/entry_points.txt
+mazepy.egg-info/top_level.txt

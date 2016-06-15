@@ -24,8 +24,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-#add correct version number here
-__version__ = "0.1"
+__version__ = "0.2"
 
 
 PROGRAMNAME="mazepy"
@@ -295,6 +294,18 @@ class Grid:
                 deadends.append(cell)
         return deadends
 
+    def braid(self,p=1.0):
+        for cell in self.getDeadEndCells():
+            if len(cell.getLinks())!=1 or random.random()>p:
+                continue
+            
+            neighbors=[n for n in cell.neighbors() if cell.linked(n) == False]
+            best=[n for n in neighbors if len(cell.getLinks())==1]
+            if len(best)==0:
+                best=neighbors
+            neighbor=random.choice(best)
+            cell.link(neighbor)
+
     def __str__(self):
         return self.asciiStr()
 
@@ -485,24 +496,24 @@ def initHuntAndKillMaze(grid):
     return grid
 
 
-#============================================================
-
-def initRecursiveBacktrackerMaze2(grid):
-    rbWalkFrom(grid.randomCell())
-    return grid
-
-def rbWalkFrom(cell):
-    shuffledNeighbors=random.sample(cell.neighbors(),len(cell.neighbors()))
-    for neighbor in shuffledNeighbors:
-        if len(neighbor.getLinks())==0:
-            cell.link(neighbor)
-            rbWalkFrom(neighbor)
-
-def printGrid(grid):
+def printGrid(grid,withDistance=False):
     print("%s Maze" % grid.algorithm)
     print("Deadends: %d" % len(grid.getDeadEndCells()))
-    print(grid)
-    print()
+    if withDistance==False:
+        print(grid)
+        print()
+    else:
+        startRow=0#random.randint(0, rows-1)
+        startColumn=0#random.randint(0, columns-1)
+        start = grid.getCell(startRow,startColumn)
+        goalRow=grid.rows-1#random.randint(0, rows-1)
+        goalColumn=grid.columns-1#random.randint(0, columns-1)
+        goal= grid.getCell(goalRow,goalColumn)
+        distances = start.getDistances()
+        grid.distances = distances.pathTo(goal)
+        print("Start: ", start.toString())
+        print("Goal: ", goal.toString())
+        print(grid)
 
 def main():
     rows,columns=10,10
@@ -542,21 +553,26 @@ def main():
     grid=initMaze(grid,"HK")
     printGrid(grid)
 
-#    grid=Grid(rows,columns)
     grid=DistanceGrid(rows,columns)
     grid=initMaze(grid,"W")
-    startRow=0#random.randint(0, rows-1)
-    startColumn=0#random.randint(0, columns-1)
-    start = grid.getCell(startRow,startColumn)
-    goalRow=rows-1#random.randint(0, rows-1)
-    goalColumn=columns-1#random.randint(0, columns-1)
-    goal= grid.getCell(goalRow,goalColumn)
-    distances = start.getDistances()
-    grid.distances = distances.pathTo(goal)
-    print("Wilson Maze:")
-    print("Start: ", start.toString())
-    print("Goal: ", goal.toString())
-    print(grid)
+    printGrid(grid,withDistance=True)
+
+    grid=Grid(rows,columns)
+    grid=getRandomMaze(grid)
+    print("Random maze:")
+    printGrid(grid)
+    print("Same maze but braided (1.0):")
+    grid.braid()
+    printGrid(grid)
+
+    grid=DistanceGrid(rows,columns)
+    grid=getRandomMaze(grid)
+    print("Random maze:")
+    printGrid(grid,withDistance=True)
+    print("Same maze but braided (0.4):")
+    grid.braid(0.4)
+    printGrid(grid,withDistance=True)
+
 
 if __name__ == "__main__": 
     main()

@@ -61,6 +61,8 @@ for a in MAZE_ALGORITHMS.keys():
 #Maze classes
 
 class Cell:
+    '''Basic cell-class for mazes.'''
+
     def __init__(self,row,column):
         self.row=row
         self.column=column
@@ -239,6 +241,7 @@ class Distances:
         return breadcrumbs
 
 class Grid:
+    '''Maze-class includes the maze and all cells.'''
 
     def __init__(self,rows,columns,cellClass=Cell):
         self.CellClass=cellClass
@@ -399,7 +402,8 @@ class DistanceGrid(Grid):
 #init mazes
 
 def initMazeFromJSON(jsonString, cellClass=Cell):
-
+    '''Init a maze from JSON string.'''
+    
     jsonObj = json.loads(jsonString)
     rows=jsonObj["rows"]
     columns=jsonObj["columns"]

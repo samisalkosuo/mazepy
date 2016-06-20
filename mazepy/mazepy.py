@@ -631,7 +631,7 @@ def main():
     print("Random maze:")
     printGrid(grid)
     print("Same maze but braided (1.0):")
-    grid.braid()
+    grid.doBraid()
     printGrid(grid)
 
     grid=DistanceGrid(rows,columns)
@@ -639,11 +639,12 @@ def main():
     print("Random maze:")
     printGrid(grid,withDistance=True)
     print("Same maze but braided (0.4):")
-    grid.braid(0.4)
+    grid.doBraid(0.4)
     printGrid(grid,withDistance=True)
 
     grid=Grid(rows,columns)
     grid=getRandomMaze(grid)
+    grid.doBraid(0.5)
     print("Random maze to be exported:")
     printGrid(grid)
     #print("Maze as JSON:")

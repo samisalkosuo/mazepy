@@ -41,7 +41,7 @@ COPYRIGHT="(C) 2016 Sami Salkosuo"
 
 
 import random
-
+import json
 
 #maze algorithms
 MAZE_ALGORITHMS=dict()
@@ -162,6 +162,23 @@ class Cell:
 
     def toString(self):
         return self.__str__()
+    
+    def toJSONString(self,prettyprint=False):
+        jsonObj=dict()
+        jsonObj["row"]=self.row
+        jsonObj["column"]=self.column
+        
+        jsonObj["north"]=self.linked(self.north)
+        jsonObj["east"]=self.linked(self.east)
+        jsonObj["south"]=self.linked(self.south)
+        jsonObj["west"]=self.linked(self.west)
+        
+        if prettyprint==True:
+            out=json.dumps(jsonObj, indent=2)
+        else:
+            out=json.dumps(jsonObj)
+        return out
+
 
     def __str__(self):
         output="Cell[%d,%d], Linked neighbors: " % (self.row,self.column)
@@ -221,7 +238,6 @@ class Distances:
                     break
         return breadcrumbs
 
-
 class Grid:
 
     def __init__(self,rows,columns,cellClass=Cell):
@@ -231,8 +247,10 @@ class Grid:
         self.grid=self.prepareGrid()
         self.distances=None
         self.configureCells()
-        self.algorithm=None
-        
+        self.algorithm_key=None
+        self.algorithm=None        
+        self.braid=-1.0#no braiding
+    
     def prepareGrid(self):
         rowList=[]
         i=0
@@ -294,7 +312,7 @@ class Grid:
                 deadends.append(cell)
         return deadends
 
-    def braid(self,p=1.0):
+    def doBraid(self,p=1.0):
         for cell in self.getDeadEndCells():
             if len(cell.getLinks())!=1 or random.random()>p:
                 continue
@@ -305,6 +323,32 @@ class Grid:
                 best=neighbors
             neighbor=random.choice(best)
             cell.link(neighbor)
+
+    def toJSONString(self,prettyprint=False):
+        #get export JSON
+        #includes:
+        #   algorithm
+        #   rows
+        #   columns
+        #   each cell
+        #TODO: add braid
+        
+        jsonObj=dict()
+        jsonObj["algorithm"]=self.algorithm
+        jsonObj["algorithm_key"]=self.algorithm_key
+        jsonObj["rows"]=self.rows
+        jsonObj["columns"]=self.columns
+        jsonObj["braid"]=self.braid
+
+        cells=[]
+        for cell in self.eachCell():
+            cells.append(cell.toJSONString(False))
+        jsonObj["cells"]=cells        
+        if prettyprint==True:
+            out=json.dumps(jsonObj, indent=2)
+        else:
+            out=json.dumps(jsonObj)
+        return out
 
     def __str__(self):
         return self.asciiStr()
@@ -351,28 +395,54 @@ class DistanceGrid(Grid):
         else:
             return "   " #super(Grid, self).contentsOf(cell)
 
-
 #====================
 #init mazes
 
+def initMazeFromJSON(jsonString, cellClass=Cell):
+
+    jsonObj = json.loads(jsonString)
+    rows=jsonObj["rows"]
+    columns=jsonObj["columns"]
+    grid=Grid(rows,columns,cellClass)
+    grid.algorithm=jsonObj["algorithm"]
+    grid.algorithm_key=jsonObj["algorithm_key"]
+    grid.braid=jsonObj["braid"]
+
+    #init cells
+    #for each cell link those that are neigbors
+    for _cell in jsonObj["cells"]:
+        cell=json.loads(_cell)
+        gridCell=grid.getCell(cell["row"],cell["column"])
+        if cell["north"]:
+            gridCell.link(gridCell.north)
+        if cell["east"]:
+            gridCell.link(gridCell.east)
+        if cell["south"]:
+            gridCell.link(gridCell.south)
+        if cell["west"]:
+            gridCell.link(gridCell.west)
+
+    return grid
+
+
 def initMaze(grid,algorithm):
+    if algorithm=="AB":
+        grid=initAldousBroderMaze(grid)
+    if algorithm=="BT":
+        grid=initBinaryTreeMaze(grid)
+    if algorithm=="RB":
+        grid=initRecursiveBacktrackerMaze(grid)
+    if algorithm=="S":
+        grid=initSidewinderMaze(grid)
+    if algorithm=="W":
+        grid=initWilsonMaze(grid)
+    if algorithm=="HK":
+        grid=initHuntAndKillMaze(grid)
 
-  if algorithm=="AB":
-    grid=initAldousBroderMaze(grid)
-  if algorithm=="BT":
-    grid=initBinaryTreeMaze(grid)
-  if algorithm=="RB":
-    grid=initRecursiveBacktrackerMaze(grid)
-  if algorithm=="S":
-    grid=initSidewinderMaze(grid)
-  if algorithm=="W":
-    grid=initWilsonMaze(grid)
-  if algorithm=="HK":
-    grid=initHuntAndKillMaze(grid)
+    grid.algorithm=MAZE_ALGORITHMS[algorithm]
+    grid.algorithm_key=algorithm
 
-  grid.algorithm=MAZE_ALGORITHMS[algorithm]
-
-  return grid
+    return grid
 
 def getRandomMaze(grid):
   algorithm=random.choice(list(MAZE_ALGORITHMS.keys()))
@@ -495,7 +565,6 @@ def initHuntAndKillMaze(grid):
 
     return grid
 
-
 def printGrid(grid,withDistance=False):
     print("%s Maze" % grid.algorithm)
     print("Deadends: %d" % len(grid.getDeadEndCells()))
@@ -573,6 +642,16 @@ def main():
     grid.braid(0.4)
     printGrid(grid,withDistance=True)
 
+    grid=Grid(rows,columns)
+    grid=getRandomMaze(grid)
+    print("Random maze to be exported:")
+    printGrid(grid)
+    #print("Maze as JSON:")
+    jsonString=grid.toJSONString(True)
+    #print(jsonString)
+    print("Same maze from JSON:")
+    grid=initMazeFromJSON(jsonString,Cell)
+    printGrid(grid)
 
 if __name__ == "__main__": 
     main()

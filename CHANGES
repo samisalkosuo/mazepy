@@ -1,6 +1,7 @@
-Version 0.2 (15.06.2016)
+Version 0.2 (20.06.2016)
 
 - Added braid-method to Grid-class.
+- Added possiblity to export/import maze to/from JSON.
 
 Version 0.1 (13.06.2016)
 

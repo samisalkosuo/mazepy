@@ -24,7 +24,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-__version__ = "0.2"
+__version__ = "0.3"
 
 
 PROGRAMNAME="mazepy"
@@ -71,6 +71,22 @@ class Cell:
         self.south=None
         self.west=None
         self.links=dict()
+        self.content="   "
+
+    def setContent(self,content):
+        if content==None or len(content)==0:
+            self.content="   "
+        if len(content)==1:
+            self.content=" %s " % content
+        if len(content)==2:
+            self.content="%s " % content
+        if len(content)==3:
+            self.content=content
+        if len(content)>3:
+            self.content=content[0:3]
+
+    def getContent(self):       
+        return self.content
 
     def link(self,cell,bidi=True):
         self.links[cell] = True
@@ -163,12 +179,35 @@ class Cell:
         return distances
 
     def toString(self):
-        return self.__str__()
+        output="[%d,%d," % (self.row,self.column)
+        if self.linked(self.north):
+            output=output+"1"
+        else:
+            output=output+"0"
+        output=output+","
+        if self.linked(self.east):
+            output=output+"1"
+        else:
+            output=output+"0"
+        output=output+","
+        if self.linked(self.south):
+            output=output+"1"
+        else:
+            output=output+"0"
+        output=output+","
+        if self.linked(self.west):
+            output=output+"1"
+        else:
+            output=output+"0"
+        output=output+"]"
+
+        return output
     
     def toJSONString(self,prettyprint=False):
         jsonObj=dict()
         jsonObj["row"]=self.row
         jsonObj["column"]=self.column
+        jsonObj["content"]=self.content
         
         jsonObj["north"]=self.linked(self.north)
         jsonObj["east"]=self.linked(self.east)
@@ -316,6 +355,7 @@ class Grid:
         return deadends
 
     def doBraid(self,p=1.0):
+        self.braid=p
         for cell in self.getDeadEndCells():
             if len(cell.getLinks())!=1 or random.random()>p:
                 continue
@@ -328,13 +368,7 @@ class Grid:
             cell.link(neighbor)
 
     def toJSONString(self,prettyprint=False):
-        #get export JSON
-        #includes:
-        #   algorithm
-        #   rows
-        #   columns
-        #   each cell
-        #TODO: add braid
+        #get JSON string of this grid
         
         jsonObj=dict()
         jsonObj["algorithm"]=self.algorithm
@@ -401,13 +435,13 @@ class DistanceGrid(Grid):
 #====================
 #init mazes
 
-def initMazeFromJSON(jsonString, cellClass=Cell):
+def initMazeFromJSON(jsonString, cellClass=Cell, gridClass=Grid):
     '''Init a maze from JSON string.'''
     
     jsonObj = json.loads(jsonString)
     rows=jsonObj["rows"]
     columns=jsonObj["columns"]
-    grid=Grid(rows,columns,cellClass)
+    grid=gridClass(rows,columns,cellClass)
     grid.algorithm=jsonObj["algorithm"]
     grid.algorithm_key=jsonObj["algorithm_key"]
     grid.braid=jsonObj["braid"]
@@ -417,6 +451,7 @@ def initMazeFromJSON(jsonString, cellClass=Cell):
     for _cell in jsonObj["cells"]:
         cell=json.loads(_cell)
         gridCell=grid.getCell(cell["row"],cell["column"])
+        gridCell.content=cell["content"]
         if cell["north"]:
             gridCell.link(gridCell.north)
         if cell["east"]:

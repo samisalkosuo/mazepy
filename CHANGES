@@ -1,3 +1,9 @@
+Version 0.3 (04.07.2016)
+
+- Added content-field to Cell-class and 
+  added methods: setContent() and getContent().
+- Changed Cell.toString()-method.
+
 Version 0.2 (20.06.2016)
 
 - Added braid-method to Grid-class.

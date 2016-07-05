@@ -451,7 +451,11 @@ def initMazeFromJSON(jsonString, cellClass=Cell, gridClass=Grid):
     for _cell in jsonObj["cells"]:
         cell=json.loads(_cell)
         gridCell=grid.getCell(cell["row"],cell["column"])
-        gridCell.content=cell["content"]
+        if "content" in cell:
+            gridCell.content=cell["content"]
+        else:
+            gridCell.setContent(" ")
+        
         if cell["north"]:
             gridCell.link(gridCell.north)
         if cell["east"]:
